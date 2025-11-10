@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Ana Sayfa</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        pre { background-color: #eee; padding: 1em; border-radius: 5px; }
+        a { margin-top: 1em; display: inline-block; }
+    </style>
+</head>
+<body>
+<h1>Hoşgeldiniz, <span th:text="${username}">Kullanıcı</span>!</h1>
+
+<p>Başarıyla OAuth 2.0 ile giriş yaptınız.</p>
+
+<h3>Token'dan Gelen Tüm Bilgiler (Claims):</h3>
+
+<table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+    <tr>
+        <th>Claim</th>
+        <th>Değer</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="entry : ${claims}">
+        <td th:text="${entry.key}">Claim Adı</td>
+        <td th:text="${entry.value}">Claim Değeri</td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- Güvenli çıkış için Spring Security'nin /logout adresini kullan -->
+<!-- Kullanıcının SecurityContext’ini temizler (yani oturumu kapatır). -->
+<!-- JSESSIONID cookie’sini siler veya geçersiz kılar. -->
+<form th:action="@{/logout}" method="post">
+    <input type="submit" value="Çıkış Yap" />
+</form>
+</body>
+</html>

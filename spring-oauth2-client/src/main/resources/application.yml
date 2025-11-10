@@ -1,0 +1,36 @@
+server:
+  port: 9000
+
+
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          client-mvc-oidc:
+            client-id: client-mvc-oidc
+            client-secret: secret
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://localhost:9000/login/oauth2/code/{registrationId}"
+            scope:
+              - openid
+              - profile
+            provider: spring
+        provider:
+          spring:
+            issuer-uri: http://localhost:8080
+            authorization-uri: http://localhost:8080/oauth2/authorize
+            token-uri: http://localhost:8080/oauth2/token
+            user-info-uri: http://localhost:8080/userinfo
+
+
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: TRACE
+    org.springframework.security.web.authentication: DEBUG
+    org.springframework.security.oauth2.client: TRACE
+    org.springframework.web.client.RestTemplate: DEBUG
+
