@@ -33,6 +33,9 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.print.attribute.standard.Media;
 import java.security.KeyPair;
@@ -40,6 +43,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -55,6 +59,15 @@ public class SecurityConfig {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
                 .oidc(Customizer.withDefaults()); // OpenID Connect'i etkinleştir
+
+        http.cors(cors -> cors.configurationSource(request -> {
+            CorsConfiguration config = new CorsConfiguration();
+            config.setAllowedOrigins(List.of("http://localhost:5173")); // React app origin
+            config.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
+            config.setAllowCredentials(true);
+            config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+            return config;
+        }));
 
         http
                 // /oauth2/authorize gibi uç noktalara
@@ -85,6 +98,7 @@ public class SecurityConfig {
         return http.build();
     }
 
+
     // 3. Test için hafızada bir kullanıcı oluştur
     @Bean
     public UserDetailsService userDetailsService() {
@@ -111,7 +125,21 @@ public class SecurityConfig {
                 .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build()) // Kullanıcı onayı iste
                 .build();
 
-        return new InMemoryRegisteredClientRepository(oidcClient);
+        // reeact-spa istemcisi için kayıt (PKCE ile)
+        RegisteredClient reactClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId("react-oidc-client")
+                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE) // Public client
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .redirectUri("http://localhost:5173/login/oauth2/code/react-oidc-client")
+                .postLogoutRedirectUri("http://localhost:5173/")
+                .scope(OidcScopes.OPENID)
+                .scope(OidcScopes.PROFILE)
+                .clientSettings(ClientSettings.builder()
+                        .requireProofKey(true) // <-- PKCE aktif
+                        .build())
+                .build();
+
+        return new InMemoryRegisteredClientRepository(oidcClient, reactClient);
     }
 
     // 5. Token'ları imzalamak için bir JWK kaynağı (anahtar çifti) oluştur
