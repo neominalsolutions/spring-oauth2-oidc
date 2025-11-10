@@ -28,3 +28,7 @@ export const handleCallback = async (): Promise<User | null> => {
 export const logout = async () => {
 	await userManager.signoutRedirect();
 };
+
+export async function getUser() {
+	return await userManager.getUser();
+}

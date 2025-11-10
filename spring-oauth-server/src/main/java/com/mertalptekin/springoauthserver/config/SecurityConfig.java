@@ -29,6 +29,7 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
@@ -43,6 +44,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -116,7 +118,7 @@ public class SecurityConfig {
     public RegisteredClientRepository registeredClientRepository() {
         RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("client-mvc-oidc") // İstemci ID
-                .clientSecret("{noop}secret") // İstemci şifresi
+                .clientSecret("{noop}secret") // İstemci şifresi // confidential client ise
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE) // En yaygın akış
                 .redirectUri("http://localhost:9000/login/oauth2/code/client-mvc-oidc") // İstemcinin yönlendirme adresi
@@ -127,13 +129,20 @@ public class SecurityConfig {
 
         // reeact-spa istemcisi için kayıt (PKCE ile)
         RegisteredClient reactClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("react-oidc-client")
+                .clientId("react-oidc-client") // no secret public client
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE) // Public client
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://localhost:5173/login/oauth2/code/react-oidc-client")
                 .postLogoutRedirectUri("http://localhost:5173/")
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
+                .scope("offline_access") // Refresh token için gerekli
+                .tokenSettings(TokenSettings.builder()
+                .accessTokenTimeToLive(Duration.ofMinutes(5))   // access token süresi
+                .refreshTokenTimeToLive(Duration.ofMinutes(7))      // refresh token süresi
+                .reuseRefreshTokens(true)                        // refresh token tekrar kullanılabilir mi
+                .build())
                 .clientSettings(ClientSettings.builder()
                         .requireProofKey(true) // <-- PKCE aktif
                         .build())
