@@ -52,6 +52,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
             removeAuthorizationRequestCookies(request, response);
             return;
         }
+        // Authorization Code
         String serialized = serialize(authorizationRequest);
         addCookie(response, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME, serialized, COOKIE_EXPIRE_SECONDS);
     }
