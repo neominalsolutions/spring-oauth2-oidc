@@ -3,6 +3,6 @@ export const authConfig = {
 	redirectUri: 'http://localhost:5173/login/oauth2/code/react-oidc-client',
 	postLogoutRedirectUri: 'http://localhost:5173/',
 	authority: 'http://localhost:8080', // Authorization Server URL
-	scopes: ['openid', 'profile', 'offline_access'],
-	automaticSilentRenew: true,
+	scopes: ['openid', 'profile', 'offline_access'], // offline_acess scope => refresh token talebimiz.
+	automaticSilentRenew: true, // token expire olursa arka planda otomatik token refreshleme yapısı
 };

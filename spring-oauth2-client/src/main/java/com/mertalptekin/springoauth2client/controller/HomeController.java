@@ -58,8 +58,6 @@ public class HomeController {
             System.out.println("resource server message" + messages);
 
 
-
-
         }
         return "index"; // index.html'i render et
     }
